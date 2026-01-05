@@ -102,7 +102,9 @@ async def search_jobs_db(
             jobs = []
             for row in rows:
                 job = dict(zip(columns, row))
-                # Convert any non-serializable types
+                # Convert any non-serializable types to strings
+                if job.get("id"):
+                    job["id"] = str(job["id"])  # UUID to string
                 if job.get("posted_date"):
                     job["posted_date"] = str(job["posted_date"])
                 jobs.append(job)
