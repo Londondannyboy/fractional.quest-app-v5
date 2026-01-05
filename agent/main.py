@@ -70,37 +70,38 @@ def generate_job_card_a2ui(job: dict, index: int) -> dict:
 # Define job search action
 async def search_jobs_action(role: str = None, location: str = None, remote_only: bool = False, limit: int = 5):
     """Search for fractional executive jobs."""
-    import json
+    try:
+        jobs = await search_jobs_db(
+            role=role,
+            location=location,
+            remote_only=remote_only,
+            limit=limit
+        )
 
-    jobs = await search_jobs_db(
-        role=role,
-        location=location,
-        remote_only=remote_only,
-        limit=limit
-    )
+        if not jobs:
+            return f"No {role or 'executive'} jobs found. We have 288 total jobs - try searching for CFO, CTO, or just ask 'show me all jobs'."
 
-    if not jobs:
-        return "No jobs found matching your criteria. Try broadening your search."
+        # Generate simple text response with job details
+        role_text = role.upper() if role else "executive"
+        location_text = f" in {location}" if location else ""
+        response = f"Found {len(jobs)} {role_text} opportunities{location_text}:\n\n"
 
-    # Generate conversational response
-    role_text = role.upper() if role else "executive"
-    location_text = f" in {location}" if location else ""
-    text_response = f"Found {len(jobs)} {role_text} opportunities{location_text}:"
+        for i, job in enumerate(jobs[:5], 1):
+            title = job.get('title', 'Unknown')
+            company = job.get('company', 'Unknown')
+            loc = job.get('location', 'Remote' if job.get('remote') else 'Location TBD')
+            url = job.get('url', '')
 
-    # Generate A2UI components for each job
-    a2ui_components = []
-    for i, job in enumerate(jobs):
-        card = generate_job_card_a2ui(job, i)
-        # Filter out None badges
-        card["surfaceUpdate"]["props"]["badges"] = [
-            b for b in card["surfaceUpdate"]["props"]["badges"] if b is not None
-        ]
-        a2ui_components.append(card)
+            response += f"{i}. **{title}** at {company}\n"
+            response += f"   Location: {loc}\n"
+            if url:
+                response += f"   Apply: {url}\n"
+            response += "\n"
 
-    # Return response with A2UI delimiter
-    a2ui_json = json.dumps({"components": a2ui_components}, indent=2)
-
-    return f"{text_response}\n\n{A2UI_DELIMITER}\n{a2ui_json}"
+        return response
+    except Exception as e:
+        print(f"Search error: {e}")
+        return f"Sorry, I encountered an error searching for jobs. Please try again."
 
 
 async def get_stats_action():

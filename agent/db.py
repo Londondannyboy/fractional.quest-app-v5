@@ -62,21 +62,24 @@ async def search_jobs_db(
         params = []
 
         if role:
-            # Match common executive role patterns
+            # Match common executive role patterns - search both title AND executive_title
             role_patterns = {
-                "CFO": ["CFO", "Chief Financial", "Finance Director", "FD"],
-                "CMO": ["CMO", "Chief Marketing", "Marketing Director", "VP Marketing"],
-                "CTO": ["CTO", "Chief Technology", "Tech Director", "VP Engineering"],
-                "COO": ["COO", "Chief Operating", "Operations Director"],
-                "CHRO": ["CHRO", "Chief HR", "HR Director", "People Director", "Chief People"],
-                "CRO": ["CRO", "Chief Revenue", "Revenue Director", "Sales Director"],
-                "CISO": ["CISO", "Chief Security", "Security Director", "InfoSec"],
-                "CPO": ["CPO", "Chief Product", "Product Director", "VP Product"],
+                "CFO": ["CFO", "Chief Financial", "Finance Director", "FD", "Financial"],
+                "CMO": ["CMO", "Chief Marketing", "Marketing Director", "VP Marketing", "Marketing", "Head of Marketing", "Growth"],
+                "CTO": ["CTO", "Chief Technology", "Tech Director", "VP Engineering", "Engineering", "Technology"],
+                "COO": ["COO", "Chief Operating", "Operations Director", "Operations"],
+                "CHRO": ["CHRO", "Chief HR", "HR Director", "People Director", "Chief People", "Human Resources"],
+                "CRO": ["CRO", "Chief Revenue", "Revenue Director", "Sales Director", "Sales"],
+                "CISO": ["CISO", "Chief Security", "Security Director", "InfoSec", "Cybersecurity"],
+                "CPO": ["CPO", "Chief Product", "Product Director", "VP Product", "Product"],
             }
 
             patterns = role_patterns.get(role.upper(), [role])
-            pattern_conditions = " OR ".join(["title ILIKE %s" for _ in patterns])
-            query += f" AND ({pattern_conditions})"
+            # Search in title OR executive_title
+            title_conditions = " OR ".join(["title ILIKE %s" for _ in patterns])
+            exec_conditions = " OR ".join(["executive_title::text ILIKE %s" for _ in patterns])
+            query += f" AND (({title_conditions}) OR ({exec_conditions}))"
+            params.extend([f"%{p}%" for p in patterns])
             params.extend([f"%{p}%" for p in patterns])
 
         if location:
