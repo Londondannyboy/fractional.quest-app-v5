@@ -85,84 +85,9 @@ export function VoiceCopilotBridge() {
     value: transcript || 'No conversation yet',
   })
 
-  // Register search_jobs action with A2UI rendering
-  useCopilotAction({
-    name: 'search_jobs',
-    description: 'Search for fractional executive jobs and display as cards',
-    parameters: [
-      { name: 'role', type: 'string', description: 'Job role (CFO, CMO, etc.)', required: false },
-      { name: 'location', type: 'string', description: 'Job location', required: false },
-      { name: 'remote_only', type: 'boolean', description: 'Remote only', required: false },
-      { name: 'limit', type: 'number', description: 'Max results', required: false },
-    ],
-    render: ({ status, args, result }) => {
-      if (status === 'inProgress') {
-        return (
-          <div className="p-4 bg-blue-50 rounded-lg animate-pulse">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-blue-700">
-                Searching for {args?.role || 'executive'} opportunities...
-              </span>
-            </div>
-          </div>
-        )
-      }
-
-      if (status === 'complete' && result) {
-        const { text, a2ui } = parseA2UIResponse(result as string)
-
-        return (
-          <div className="space-y-3">
-            {text && <p className="text-gray-700">{text}</p>}
-            {a2ui && (
-              <A2UIRenderer
-                response={a2ui}
-                onAction={(action) => {
-                  console.log('Job action:', action)
-                  // Handle actions like save_job, not_interested
-                }}
-              />
-            )}
-          </div>
-        )
-      }
-
-      return <></>
-    },
-  })
-
-  // Register get_job_stats action with A2UI chart rendering
-  useCopilotAction({
-    name: 'get_job_stats',
-    description: 'Get job market statistics and display as charts',
-    parameters: [],
-    render: ({ status, result }) => {
-      if (status === 'inProgress') {
-        return (
-          <div className="p-4 bg-purple-50 rounded-lg animate-pulse">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-purple-700">Loading market statistics...</span>
-            </div>
-          </div>
-        )
-      }
-
-      if (status === 'complete' && result) {
-        const { text, a2ui } = parseA2UIResponse(result as string)
-
-        return (
-          <div className="space-y-3">
-            {text && <p className="text-gray-700 whitespace-pre-line">{text}</p>}
-            {a2ui && <A2UIRenderer response={a2ui} />}
-          </div>
-        )
-      }
-
-      return <></>
-    },
-  })
+  // Note: Backend already has search_jobs and get_job_stats actions.
+  // The A2UI JSON in responses will be parsed and rendered by the
+  // CareerCoach component's message renderer.
 
   // Detect job intent from voice and track for CopilotKit
   const processVoiceQuery = useDebounce((query: string) => {
