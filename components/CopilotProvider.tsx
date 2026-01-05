@@ -9,10 +9,7 @@ interface CopilotProviderProps {
 
 export function CopilotProvider({ children }: CopilotProviderProps) {
   return (
-    <CopilotKit
-      runtimeUrl="/api/copilotkit"
-      agent="career_coach"
-    >
+    <CopilotKit runtimeUrl="/api/copilotkit">
       {children}
     </CopilotKit>
   )
