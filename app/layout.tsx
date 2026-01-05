@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { authClient } from '@/lib/auth/client'
 import { NeonAuthUIProvider } from '@neondatabase/neon-js/auth/react/ui'
+import { CopilotProvider } from '@/components/CopilotProvider'
+import { CareerCoach } from '@/components/CareerCoach'
 
 export const metadata: Metadata = {
   title: "Fractional Quest | Find Part-Time Executive Roles",
@@ -32,9 +34,13 @@ export default function RootLayout({
           redirectTo="/"
           social={{ providers: ['google'] }}
         >
-          <main className="flex-1">
-            {children}
-          </main>
+          <CopilotProvider>
+            <CareerCoach>
+              <main className="flex-1">
+                {children}
+              </main>
+            </CareerCoach>
+          </CopilotProvider>
         </NeonAuthUIProvider>
       </body>
     </html>
