@@ -4,6 +4,8 @@ import { authClient } from '@/lib/auth/client'
 import { NeonAuthUIProvider } from '@neondatabase/neon-js/auth/react/ui'
 import { CopilotProvider } from '@/components/CopilotProvider'
 import { CareerCoach } from '@/components/CareerCoach'
+import { VoiceContextProvider } from '@/context/VoiceContext'
+import { VoiceCopilotBridge } from '@/components/VoiceCopilotBridge'
 
 export const metadata: Metadata = {
   title: "Fractional Quest | Find Part-Time Executive Roles",
@@ -34,13 +36,16 @@ export default function RootLayout({
           redirectTo="/"
           social={{ providers: ['google'] }}
         >
-          <CopilotProvider>
-            <CareerCoach>
-              <main className="flex-1">
-                {children}
-              </main>
-            </CareerCoach>
-          </CopilotProvider>
+          <VoiceContextProvider>
+            <CopilotProvider>
+              <CareerCoach>
+                <VoiceCopilotBridge />
+                <main className="flex-1">
+                  {children}
+                </main>
+              </CareerCoach>
+            </CopilotProvider>
+          </VoiceContextProvider>
         </NeonAuthUIProvider>
       </body>
     </html>

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { VoiceProvider, useVoice } from '@humeai/voice-react'
 import { authClient } from '@/lib/auth/client'
+import { useVoiceContext } from '@/context/VoiceContext'
 
 function VoiceInterface({ accessToken }: { accessToken: string }) {
   const { connect, disconnect, status, messages, isPlaying } = useVoice()
@@ -11,10 +12,37 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
   const [manualConnected, setManualConnected] = useState(false)
   const [waveHeights, setWaveHeights] = useState<number[]>([])
 
+  // Connect to shared voice context
+  const { addMessage, setIsConnected } = useVoiceContext()
+  const lastMessageCountRef = useRef(0)
+
   useEffect(() => {
-    if (status.value === 'connected') setManualConnected(true)
-    if (status.value === 'disconnected') setManualConnected(false)
-  }, [status.value])
+    if (status.value === 'connected') {
+      setManualConnected(true)
+      setIsConnected(true)
+    }
+    if (status.value === 'disconnected') {
+      setManualConnected(false)
+      setIsConnected(false)
+    }
+  }, [status.value, setIsConnected])
+
+  // Sync Hume messages to VoiceContext
+  useEffect(() => {
+    if (messages.length > lastMessageCountRef.current) {
+      // Process new messages
+      const newMessages = messages.slice(lastMessageCountRef.current)
+      newMessages.forEach((msg: any) => {
+        if (msg.type === 'user_message' || msg.type === 'assistant_message') {
+          const content = msg.message?.content || ''
+          if (content) {
+            addMessage(msg.type as 'user_message' | 'assistant_message', content)
+          }
+        }
+      })
+      lastMessageCountRef.current = messages.length
+    }
+  }, [messages, addMessage])
 
   // Waveform animation
   useEffect(() => {
